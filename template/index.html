@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clearify - Image Enhancement Tool</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .jumbotron {
+            padding: 2rem 1rem;
+            margin-bottom: 2rem;
+            background-color: #e9ecef;
+            border-radius: .3rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="#">Clearify</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact">Contact</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="jumbotron">
+            <h1 class="display-4">Welcome to Clearify</h1>
+            <p class="lead">Enhance your images with our advanced AI-powered tool. Upload your images and see the magic
+                happen!</p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h2>Upload Your Images</h2>
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="images" class="form-label">Select images to enhance</label>
+                        <input class="form-control" type="file" id="images" name="images" accept="image/png,image/jpeg">
+                    </div>
+                    <div class="mb-3">
+                        <label for="scale" class="form-label">Scale factor</label>
+                        <input type="number" class="form-control" id="scale" name="scale" min="1" max="4" step="0.1"
+                            value="2">
+                    </div>
+                    <div class="mb-3">
+                        <label for="sharping" class="form-label">Sharpening intensity</label>
+                        <input type="number" class="form-control" id="sharping" name="sharping" min="0" max="100"
+                            step="0.1" value="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="quality" class="form-label">Output quality (JPEG only)</label>
+                        <input type="number" class="form-control" id="quality" name="quality" min="1" max="100"
+                            value="100">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Enhance Images</button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <h2>Results</h2>
+                <div id="results">
+                    <p>Enhanced images will appear here for download.</p>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        <div id="about">
+            <h2>About Clearify</h2>
+            <p>Clearify is an advanced image enhancement tool that uses cutting-edge AI technology to improve the
+                quality of your images. Our tool can upscale, sharpen, and optimize your photos, making them look
+                clearer and more professional.</p>
+        </div>
+
+        <hr class="my-4">
+
+        <div id="contact">
+            <h2>Contact Us</h2>
+            <p>If you have any questions or feedback, please don't hesitate to reach out to us at <a
+                    href="mailto:support@clearify.com">support@clearify.com</a>.</p>
+        </div>
+    </div>
+
+    <footer class="bg-light text-center text-lg-start mt-5">
+        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
+            © 2023 Clearify. All rights reserved.
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            axios({
+                method: "POST",
+                url: "/uploads",
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                },
+                data: formData,
+                responseType: 'blob',
+                timeout: 1000 * 60 * 1010
+            })
+                .then(response => {
+                    // Create a new Blob object using the response data
+                    const blob = new Blob([response.data], { type: response.data.type });
+                    const resultDiv = document.getElementById('results');
+                    resultDiv.innerHTML = ''; // Clear previous results
+                    // Check for Content-Disposition header to extract filename
+                    const contentDisposition = response.headers['content-disposition'];
+                    let filename = 'downloaded_file.zip'; // Default filename
+
+                    if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
+                        const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+                        if (matches != null && matches[1]) {
+                            filename = matches[1].replace(/['"]/g, '');
+                        }
+                    }
+
+                    // Create a FileReader to read the Blob as a data URL
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+
+                    reader.onload = function () {
+                        // Create an image element to display the image
+                        const img = document.createElement('img');
+                        img.src = reader.result;
+                        img.className = 'img-fluid mt-2';
+                        img.alt = 'Enhanced Image';
+                        resultDiv.appendChild(img);
+
+                        // Create a download link for the image
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = reader.result;
+                        downloadLink.download = filename;
+                        downloadLink.textContent = 'Download Enhanced Image';
+                        downloadLink.className = 'btn btn-primary mt-2 d-block';
+                        resultDiv.appendChild(downloadLink);
+                    };
+
+                    reader.onerror = function (error) {
+                        console.error('File reading failed:', error);
+                    };
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('results').innerHTML = `<p class="text-danger">An error occurred: ${error.message}</p>`;
+                });
+        });
+    </script>
+
+</body>
+
+</html>

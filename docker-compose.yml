@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  golang-app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: UpReso
+    ports:
+      - "8000:8000"
+    command: ./main
+    restart: unless-stopped
