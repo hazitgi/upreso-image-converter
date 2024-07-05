@@ -8,5 +8,5 @@ services:
     container_name: upreso
     ports:
       - "8000:8000"
-    command: ./main
+    # command: ./main
     restart: unless-stopped

@@ -1,5 +1,6 @@
 # Use an appropriate base image
-FROM golang:1.22.5 as builder
+# FROM golang:1.22.5 as builder
+FROM golang:1.22.5
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
@@ -17,13 +18,13 @@ RUN go mod download
 RUN go build -o main ./cmd/main.go
 
 # Stage 2: Final stage
-FROM alpine:latest
+# FROM alpine:latest
 
-# Set the working directory for the final image
-WORKDIR /root/
+# # Set the working directory for the final image
+# WORKDIR /root/
 
-# Copy the built executable from the builder stage to the final image
-COPY --from=builder /app/main .
+# # Copy the built executable from the builder stage to the final image
+# COPY --from=builder /app/main .
 
 # Run the application
 CMD ["./main"]
